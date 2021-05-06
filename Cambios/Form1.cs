@@ -1,14 +1,7 @@
 ﻿using Cambios.Modelos;
 using Cambios.Servicos;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -26,6 +19,8 @@ namespace Cambios
 
         private DialogService dialogService;
 
+        private DataService dataService;
+
         #endregion
 
         public Form1()
@@ -34,6 +29,7 @@ namespace Cambios
             networkService = new NetworkService();
             apiService = new ApiService();
             dialogService = new DialogService();
+            dataService = new DataService();
             LoadRates();
         }
 
@@ -61,6 +57,7 @@ namespace Cambios
                 lblResultado.Text = "Não há ligação à Internet" + Environment.NewLine +
                     "e não foram préviamente carregadas as taxas." + Environment.NewLine +
                     "Tente mais tarde!";
+                lblStatus.Text = "Primeira inicialização deverá ter ligação à Internet";
 
                 return;
             }
@@ -93,7 +90,7 @@ namespace Cambios
 
         private void LoadLocalRates()
         {
-            throw new NotImplementedException();
+            Rates = dataService.GetData();
         }
 
         private async Task LoadApiRates()
@@ -103,6 +100,10 @@ namespace Cambios
             var response = await apiService.GetRates("http://cambios.somee.com", "/api/rates");
 
             Rates = (List<Rate>) response.Result;
+
+            dataService.DeleteData();
+
+            dataService.SaveData(Rates);
         }
 
         private void btnConverter_Click(object sender, EventArgs e)
